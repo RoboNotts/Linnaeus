@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "fcos-cli"
+version = "0.1.0"
+description = ""
+authors = ["DTheLegend <wampamba.daudi@gmail.com>"]
+readme = "README.md"
+packages = [{include = "fcos"}]
+
+[tool.poetry.dependencies]
+python = "3.10.6"
+fcos-core = {path = "../core"}
+fcos-train = {path = "../train", optional=true}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.extras]
+train = ["fcos-train"]
