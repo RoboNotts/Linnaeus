@@ -124,7 +124,7 @@ def calculate_mAP_gt(box, gt_box,threshold=0.5):
     iou = compute_iou(gt_box[1:5], box[2:6])
     if iou >= threshold:
         TP = True
-    return (box[:2], TP)
+    return (*box[:2], TP)
 
 def return_mAP(model, dataset, classes):
     model.cuda()
@@ -136,26 +136,27 @@ def return_mAP(model, dataset, classes):
     # traverse dataset
     for image, tags in dataset:
         # get an image
-        cuda_image = image.cuda()
+        cuda_image = image.unsqueeze(0).cuda()
         # predict
         row = cuda_image.shape[2]
         col = cuda_image.shape[3]
         confs, locs, centers = model(cuda_image)
-        boxes = fcos_to_boxes(confs, locs, centers, row, col)
+        boxes = fcos_to_boxes(classes, confs, locs, centers, row, col)
         for gt_box in tags:
-            gt_count_all[gt_box[0]] += 1
+            box_class = classes[int(gt_box[0].item())]
+            gt_count_all[box_class] += 1
             for box in boxes:
                 if(box[0] == gt_box[0]):
-                    mAP_all[box[0]].append(calculate_mAP_gt(box, gt_box))
+                    mAP_all[box_class].append(calculate_mAP_gt(box, gt_box))
     mAP = 0
-    # p = 0
-    # r = 0
-    for c in mAP_all:
+    mp = 0
+    mr = 0
+    for c in classes:
         p, r, ap = compute_mAP(mAP_all[c], gt_count_all[c])
         mAP += ap * gt_count_all[c]
-        # p += p * gt_count_all[c]
-        # r += r * gt_count_all[c]
+        mp += p * gt_count_all[c]
+        mr += r * gt_count_all[c]
     mAP /= sum(gt_count_all.values())
-    # p /= sum(gt_count_all.values())
-    # r /= sum(gt_count_all.values())
-    return mAP
+    mp /= sum(gt_count_all.values())
+    mr /= sum(gt_count_all.values())
+    return mAP, mp, mr

@@ -23,6 +23,8 @@ train_parser.add_argument('--weight_decay', type=float, default=0.005, required=
 train_parser.add_argument('--optimizer_name', type=str, default="Adam",  required=False)
 train_parser.add_argument('--save_file', type=pathlib.Path, required=False)
 
+predict_parser = sub_parsers.add_parser("predict")
+
 args = parser.parse_args()
 
 if args.command == "train":
@@ -32,3 +34,5 @@ if args.command == "train":
         train(**vars(args))
     except ImportError:
         print("Train Module not included.")
+elif args.command == "predict":
+    pass

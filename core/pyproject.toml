@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fcos-core"
-version = "0.1.4"
+version = "0.1.7"
 description = ""
 authors = ["DTheLegend <wampamba.daudi@gmail.com>"]
 readme = "README.md"

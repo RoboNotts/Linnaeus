@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fcos-train"
-version = "0.1.6"
+version = "0.1.7"
 description = ""
 authors = ["DTheLegend <wampamba.daudi@gmail.com>"]
 readme = "README.md"
@@ -9,6 +9,7 @@ packages = [{include = "fcos"}]
 [tool.poetry.dependencies]
 python = "3.10.6"
 fcos-core= {path = "../core"}
+tqdm = "^4.64.1"
 
 
 [build-system]
