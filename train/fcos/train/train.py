@@ -73,7 +73,7 @@ def train(weights, classfile, train_dataset, val_dataset, batch_size = 1, epoch 
     with tqdm(total=100, position=2, desc="Accuracy") as tqdm_accuracy, tqdm(total=100, position=3, desc="Recall") as tqdm_recall, tqdm(total=100, position=4, desc="Mean Average Precision") as tqdm_mAP:
         for c_epoch in tqdm(range(start, epoch), position=0, desc="Epoch", leave=True):
             # release a mini-batch data
-            with tqdm(enumerate(loader), total=ceil(len(train_dataset) / batch_size), unit_scale=batch_size, position=1, desc="Step", leave=True) as tdqm_enumerated_loader:
+            with tqdm(enumerate(loader), total=ceil(len(train_dataset) / batch_size), unit_scale=batch_size, position=1, desc="Step") as tdqm_enumerated_loader:
                 for step, (images, tags) in tdqm_enumerated_loader:
                     # read images and labels
                     device_image = images.to(train_device)
@@ -89,10 +89,13 @@ def train(weights, classfile, train_dataset, val_dataset, batch_size = 1, epoch 
             
             # evaluate the performance of current model
             mAP, mp, mr = return_mAP(model, val_dataset, classes)
+            tqdm_accuracy.reset()
             tqdm_accuracy.update(mp * 100)
+            tqdm_recall.reset()
             tqdm_recall.update(mr * 100)
+            tqdm_mAP.reset()
             tqdm_mAP.update(mAP * 100)
-            tqdm.write('Epoch: %d |mAP: %.4f' % (c_epoch, mAP))
+            tqdm.write('Epoch: %d | mAP: %.4f' % (c_epoch, mAP))
             # save if better
             if mAP >= max_mAP:
                 if save_file:

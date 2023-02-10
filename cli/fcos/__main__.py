@@ -24,6 +24,10 @@ train_parser.add_argument('--optimizer_name', type=str, default="Adam",  require
 train_parser.add_argument('--save_file', type=pathlib.Path, required=False)
 
 predict_parser = sub_parsers.add_parser("predict")
+predict_parser.add_argument('model', type=pathlib.Path)
+predict_parser.add_argument('weights', type=pathlib.Path)
+predict_parser.add_argument('classfile', type=pathlib.Path)
+predict_parser.add_argument('image', type=pathlib.Path)
 
 args = parser.parse_args()
 
@@ -31,8 +35,12 @@ if args.command == "train":
     try:
         from fcos.train import train
         del args.command
+        
         train(**vars(args))
     except ImportError:
         print("Train Module not included.")
 elif args.command == "predict":
-    pass
+    from fcos.cli import predict
+    del args.command
+
+    predict.main(**vars(args))
