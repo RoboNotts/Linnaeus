@@ -8,8 +8,8 @@ packages = [{include = "linnaeus"}]
 
 [tool.poetry.dependencies]
 python = "3.10.6"
-linnaeus-core = {path = "../core"}
-linnaeus-train = {path = "../train", optional=true}
+linnaeus-core = "^0.1.0"
+linnaeus-train = "^0.1.0"
 
 [build-system]
 requires = ["poetry-core"]

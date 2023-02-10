@@ -123,6 +123,18 @@ files = [
 ]
 
 [[package]]
+name = "idna"
+version = "3.4"
+description = "Internationalized Domain Names in Applications (IDNA)"
+category = "main"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "idna-3.4-py3-none-any.whl", hash = "sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2"},
+    {file = "idna-3.4.tar.gz", hash = "sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4"},
+]
+
+[[package]]
 name = "linnaeus-core"
 version = "0.1.4"
 description = ""
@@ -140,18 +152,6 @@ torchvision = "^0.14.1"
 [package.source]
 type = "directory"
 url = "../core"
-
-[[package]]
-name = "idna"
-version = "3.4"
-description = "Internationalized Domain Names in Applications (IDNA)"
-category = "main"
-optional = false
-python-versions = ">=3.5"
-files = [
-    {file = "idna-3.4-py3-none-any.whl", hash = "sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2"},
-    {file = "idna-3.4.tar.gz", hash = "sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4"},
-]
 
 [[package]]
 name = "numpy"
@@ -560,4 +560,4 @@ test = ["pytest (>=3.0.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.6"
-content-hash = "bf7a37253558dbe7a5f13d18d43b71a397ba80b9348578480c9e792543f2716d"
+content-hash = "b11171ca932da76e9017cd0e8f3b16c183b1620f6997073ad294651c367154cf"

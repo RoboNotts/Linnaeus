@@ -6,15 +6,9 @@ authors = ["DTheLegend <wampamba.daudi@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "3.10.6"
-linnaeus-core = {path = "../core"}
-linnaeus-cli = {path = "../cli", optional=true}
-linnaeus-train = {path = "../train", optional=true}
+python = "^3.10"
+
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
-
-[tool.poetry.extras]
-cli = ["linnaeus-cli"]
-train = ["linnaeus-train"]
