@@ -5,7 +5,7 @@ import numpy as np
 from torch.utils.data import Dataset
 from pathlib import Path
 
-from fcos.core.data_augmentation import preprocessing
+from linnaeus.core.data_augmentation import preprocessing
 
 class FolderDataSetLoader(Dataset):
 

@@ -123,7 +123,19 @@ files = [
 ]
 
 [[package]]
-name = "fcos-cli"
+name = "idna"
+version = "3.4"
+description = "Internationalized Domain Names in Applications (IDNA)"
+category = "main"
+optional = false
+python-versions = ">=3.5"
+files = [
+    {file = "idna-3.4-py3-none-any.whl", hash = "sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2"},
+    {file = "idna-3.4.tar.gz", hash = "sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4"},
+]
+
+[[package]]
+name = "linnaeus-cli"
 version = "0.1.0"
 description = ""
 category = "main"
@@ -133,17 +145,17 @@ files = []
 develop = false
 
 [package.dependencies]
-fcos-core = {path = "../core"}
+linnaeus-core = {path = "../core"}
 
 [package.extras]
-train = ["fcos-train @ file:///C:/Users/wampa/Documents/Coding%20Projects/Unnamed/train"]
+train = ["linnaeus-train @ file:///C:/Users/wampa/Documents/Coding%20Projects/Unnamed/train"]
 
 [package.source]
 type = "directory"
 url = "../cli"
 
 [[package]]
-name = "fcos-core"
+name = "linnaeus-core"
 version = "0.1.7"
 description = ""
 category = "main"
@@ -162,7 +174,7 @@ type = "directory"
 url = "../core"
 
 [[package]]
-name = "fcos-train"
+name = "linnaeus-train"
 version = "0.1.7"
 description = ""
 category = "main"
@@ -172,24 +184,12 @@ files = []
 develop = false
 
 [package.dependencies]
-fcos-core = {path = "../core"}
+linnaeus-core = {path = "../core"}
 tqdm = "^4.64.1"
 
 [package.source]
 type = "directory"
 url = "../train"
-
-[[package]]
-name = "idna"
-version = "3.4"
-description = "Internationalized Domain Names in Applications (IDNA)"
-category = "main"
-optional = false
-python-versions = ">=3.5"
-files = [
-    {file = "idna-3.4-py3-none-any.whl", hash = "sha256:90b77e79eaa3eba6de819a0c442c0b4ceefc341a7a2ab77d7562bf49f425c5c2"},
-    {file = "idna-3.4.tar.gz", hash = "sha256:814f528e8dead7d329833b91c5faa87d60bf71824cd12a7530b5526063d02cb4"},
-]
 
 [[package]]
 name = "numpy"
@@ -465,10 +465,10 @@ secure = ["certifi", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "ipaddress", "p
 socks = ["PySocks (>=1.5.6,!=1.5.7,<2.0)"]
 
 [extras]
-cli = ["fcos-cli"]
-train = ["fcos-train"]
+cli = ["linnaeus-cli"]
+train = ["linnaeus-train"]
 
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.6"
-content-hash = "873ca51da785d98254b6dcc7dcd6a101741a8fd9372639b59022726702febc70"
+content-hash = "e863f4c1f6f717191fd31914cde446f53eeb63de3f006289fbe1ed3fe3b6876b"

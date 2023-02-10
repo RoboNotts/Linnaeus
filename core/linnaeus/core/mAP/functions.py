@@ -142,6 +142,7 @@ def return_mAP(model, dataset, classes):
         col = cuda_image.shape[3]
         confs, locs, centers = model(cuda_image)
         boxes = fcos_to_boxes(classes, confs, locs, centers, row, col)
+        boxes.sort(key=take2, reverse=True)
         for gt_box in tags:
             box_class = classes[int(gt_box[0].item())]
             gt_count_all[box_class] += 1
@@ -152,6 +153,7 @@ def return_mAP(model, dataset, classes):
     mp = 0
     mr = 0
     for c in classes:
+        mAP_all[c].sort(key=take2, reverse=True)
         p, r, ap = compute_mAP(mAP_all[c], gt_count_all[c])
         mAP += ap * gt_count_all[c]
         mp += p * gt_count_all[c]

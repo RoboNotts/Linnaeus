@@ -1,7 +1,7 @@
 import torch
-from fcos.core.loaders import FolderDataSetLoader, ClassLoader
-from fcos.train.loss import FCOSLoss
-from fcos.core.models import FCOS
+from linnaeus.core.loaders import FolderDataSetLoader, ClassLoader
+from linnaeus.train.loss import FCOSLoss
+from linnaeus.core.models import FCOS
 import torch.utils.data as Data
 import os
 from fcos.core.mAP import return_mAP

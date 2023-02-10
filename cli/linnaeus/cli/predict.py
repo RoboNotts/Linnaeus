@@ -1,7 +1,7 @@
-from fcos.core.models import FCOS
-from fcos.core.loaders import ClassLoader
-from fcos.core.data_augmentation import preprocessing
-from fcos.core.mAP.functions import fcos_to_boxes
+from linnaeus.core.models import FCOS
+from linnaeus.core.loaders import ClassLoader
+from linnaeus.core.data_augmentation import preprocessing
+from linnaeus.core.mAP.functions import fcos_to_boxes
 import numpy as np
 import torch
 import cv2

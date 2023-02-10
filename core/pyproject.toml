@@ -1,10 +1,10 @@
 [tool.poetry]
-name = "fcos-core"
+name = "linnaeus-core"
 version = "0.1.7"
 description = ""
 authors = ["DTheLegend <wampamba.daudi@gmail.com>"]
 readme = "README.md"
-packages = [{include = "fcos"}]
+packages = [{include = "linnaeus"}]
 
 [tool.poetry.dependencies]
 python = "3.10.6"

@@ -2,7 +2,7 @@ import argparse
 import pathlib
 
 parser = argparse.ArgumentParser(
-    prog="FCOS Command Line Tool",
+    prog="Linnaeus Command Line Tool",
     description="This tool provides an easy interface for fcos training and running",
     epilog="<Insert famous quote here>"
 )
@@ -33,14 +33,14 @@ args = parser.parse_args()
 
 if args.command == "train":
     try:
-        from fcos.train import train
+        from linnaeus.train import train
         del args.command
         
         train(**vars(args))
     except ImportError:
         print("Train Module not included.")
 elif args.command == "predict":
-    from fcos.cli import predict
+    from linnaeus.cli import predict
     del args.command
 
     predict.main(**vars(args))

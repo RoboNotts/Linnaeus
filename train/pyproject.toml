@@ -1,14 +1,14 @@
 [tool.poetry]
-name = "fcos-train"
+name = "linnaeus-train"
 version = "0.1.7"
 description = ""
 authors = ["DTheLegend <wampamba.daudi@gmail.com>"]
 readme = "README.md"
-packages = [{include = "fcos"}]
+packages = [{include = "linnaeus"}]
 
 [tool.poetry.dependencies]
 python = "3.10.6"
-fcos-core= {path = "../core"}
+linnaeus-core= {path = "../core"}
 tqdm = "^4.64.1"
 
 

@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from fcos.core.mAP import MapMaster
+from linnaeus.core.mAP import MapMaster
 from .iou_loss import IOULoss
 
 class FCOSLoss(nn.Module):

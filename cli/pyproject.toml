@@ -1,19 +1,19 @@
 [tool.poetry]
-name = "fcos-cli"
+name = "linnaeus-cli"
 version = "0.1.0"
 description = ""
 authors = ["DTheLegend <wampamba.daudi@gmail.com>"]
 readme = "README.md"
-packages = [{include = "fcos"}]
+packages = [{include = "linnaeus"}]
 
 [tool.poetry.dependencies]
 python = "3.10.6"
-fcos-core = {path = "../core"}
-fcos-train = {path = "../train", optional=true}
+linnaeus-core = {path = "../core"}
+linnaeus-train = {path = "../train", optional=true}
 
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.extras]
-train = ["fcos-train"]
+train = ["linnaeus-train"]
