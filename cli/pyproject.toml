@@ -9,7 +9,7 @@ packages = [{include = "linnaeus"}]
 [tool.poetry.dependencies]
 python = "3.10.6"
 linnaeus-core = "^0.1.0"
-linnaeus-train = "^0.1.0"
+linnaeus-train = { version = "^0.1.0", optional = true }
 
 [build-system]
 requires = ["poetry-core"]

@@ -4,7 +4,7 @@ from linnaeus.train.loss import FCOSLoss
 from linnaeus.core.models import FCOS
 import torch.utils.data as Data
 import os
-from fcos.core.mAP import return_mAP
+from linnaeus.core.mAP import return_mAP
 import torch
 from tqdm import tqdm
 from math import ceil
