@@ -11,6 +11,8 @@ python = "3.10.6"
 linnaeus-core= "^0.1.0"
 tqdm = "^4.64.1"
 
+[tool.poetry.extras]
+yolo = ["ultralytics"]
 
 [build-system]
 requires = ["poetry-core"]
