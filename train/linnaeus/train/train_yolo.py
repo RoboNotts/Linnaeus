@@ -9,8 +9,10 @@ import os
 import json
 import tarfile
 import io
+import cv2
+import pathlib
+import random
 from urllib.request import Request, urlopen
-from PIL import Image
 
 # You can edit this list to only download certain kinds of files.
 # 'berkeley_rgbd' contains all of the depth maps and images from the Carmines.
@@ -22,6 +24,12 @@ from PIL import Image
 # See the website for more details.
 #files_to_download = ["berkeley_rgbd", "berkeley_rgb_highres", "berkeley_processed", "google_16k", "google_64k", "google_512k"]
 files_to_download = ["berkeley_rgb_highres"]
+
+# objects_to_download = "all"
+objects_to_download = ["001_chips_can"]
+#                        "002_master_chef_can",
+#                        "003_cracker_box",
+#                        "004_sugar_box"]
 
 # Extract all files from the downloaded .tgz, and remove .tgz files.
 # If false, will just download all .tgz files to output_directory
@@ -77,22 +85,6 @@ def check_url(url):
     except Exception as e:
         return False
 
-
-
-def get_bounding_box(filename):
-    with Image.open(filename) as mask:
-        # Convert to binary format
-        binary = mask.convert('1')
-
-        # Find bounding box coordinates
-        return binary.getbbox()
-
-def scale_x(x):
-    return x * 640 / 4272
-
-def scale_y(y):
-    return y * (640 * (2848 / 4272))
-
 def lazy_image_collection():
 
     # Grab all the object information
@@ -100,6 +92,8 @@ def lazy_image_collection():
 
     # Download each object for all objects and types specified
     for object in objects:
+        if objects_to_download != "all" and object not in objects_to_download:
+            continue
         for file_type in files_to_download:
             temp_file = io.BytesIO()
             url = tgz_url(object, file_type)
@@ -112,46 +106,45 @@ def lazy_image_collection():
                 for tf in t.getmembers():
                     if tf.isfile() and (not '/' in tf.name) and tf.name.endswith(".jpg"):
                         # Valid photo
+                        
+                        # Yield a tuple of the image file and the image mask
+                        yield tuple(t.extractfile(tf), t.extractfile(t.getmember(os.path.join('masks', os.path.splitext(tf.name)[0] + '_mask.pbm'))).read())
 
-                        yield (tuple(object, *get_bounding_box(t.extractfile(t.getmember(os.path.join('masks', os.path.splitext(tf.name)[0] + '_mask.pbm'))).read())), t.extractfile(tf).read())
+def save_yolo(save_dir, filename, classnumber, image_and_mask):
+    image, mask = image_and_mask
+    mask = cv2.imread(mask, cv2.IMREAD_BINARY)
+    image = cv2.imread(image, cv2.IMREAD_COLOR)
 
-def save_yolo_annotation(image_filename, annotations):
-    # annotations is a list of ((class_name, bbox_left, bbox_upper, bbox_right, bbox_lower), image_bytes) tuples
-    
+    # Resize the image to 640x640
+    image = image.resize((640, 640))
+
+    # Gather the polygons
+    polygons = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
     # Create the YOLO annotation filename and the image filename
-    annotation_filename = os.path.splitext(image_filename)[0] + ".txt"
-    image_output_filename = os.path.splitext(image_filename)[0] + ".jpg"
+    image_filename = save_dir / "images" / f"{filename}.jpg"
+    annotation_filename = save_dir / "labels" / f"{filename}.txt"
     
-    with open(annotation_filename, "w") as f:
-        (class_name, bbox_left, bbox_upper, bbox_right, bbox_lower), image_bytes = annotation
-        
-        # Resize the image to 640x426
-        image = Image.open(image_bytes)
-        image = image.resize((640, 426))
-        
-        # Convert the bounding box coordinates to the resized image size
-        old_image_width, old_image_height = image.size
-        new_image_width, new_image_height = 640, 426
-        bbox_left = bbox_left * new_image_width / old_image_width
-        bbox_upper = bbox_upper * new_image_height / old_image_height
-        bbox_right = bbox_right * new_image_width / old_image_width
-        bbox_lower = bbox_lower * new_image_height / old_image_height
-        
-        # Convert the bounding box coordinates to YOLO format (normalized between 0 and 1)
-        x_center = (bbox_left + bbox_right) / 2 / new_image_width
-        y_center = (bbox_upper + bbox_lower) / 2 / new_image_height
-        width = (bbox_right - bbox_left) / new_image_width
-        height = (bbox_lower - bbox_upper) / new_image_height
-        
-        # Write the YOLO annotation line
-        line = "{} {} {} {} {}".format(class_name, x_center, y_center, width, height)
-        f.write(line + "\n")
+    # write the polygons to the annotation file
+    with open(annotation_filename, 'w') as annotation_file:
+        for polygon in polygons:
+            polygon_point_str = " ".join(" ".join(point) for point in polygon)
+            annotation_file.write(f"{classnumber} {polygon_point_str}\n")
     
-    # Save the resized image to disk
-    image.save(image_output_filename, format='JPEG', quality=95)
+    # Save the image
+    image.save(image_filename, format='JPEG', quality=95)
+
+TEST = 0.2
+TRAIN = 0.6
 
 if __name__=="__main__":
-    for i, j in lazy_image_collection():
-        save_yolo_annotation(f"./yolo/image_{i}", j)
-        
-        
+    for index, image_and_mask in enumerate(lazy_image_collection()):
+        choice_machine = random.random()
+        path = pathlib.Path("YCB-dataset")
+
+        if choice_machine < TRAIN:
+            save_yolo(path / "train", f"img{index}", image_and_mask)
+        elif choice_machine < TRAIN + TEST:
+            save_yolo(path / "test", f"img{index}", image_and_mask)
+        else:
+            save_yolo(path / "validation", f"img{index}", image_and_mask)
