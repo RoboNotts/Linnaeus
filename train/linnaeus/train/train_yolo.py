@@ -5,13 +5,14 @@
 
 # Modified to work with Python 3 by Sebastian Castro, 2020
 
-import os
+import numpy as np
 import json
 import tarfile
-import io
+import tempfile
 import cv2
 import pathlib
 import random
+from tqdm import tqdm
 from urllib.request import Request, urlopen
 
 # You can edit this list to only download certain kinds of files.
@@ -47,24 +48,25 @@ def fetch_objects(url):
     return objects["objects"]
 
 
-def download_file(url, file):
+def download_file(url):
     """ Downloads files from a given URL """
+
+    file = tempfile.TemporaryFile(mode="w+b")
     u = urlopen(url)
     file_size = int(u.getheader("Content-Length"))    
 
-    file_size_dl = 0
     block_sz = 65536
-    while True:
-        buffer = u.read(block_sz)
-        if not buffer:
-            break
+    with tqdm(total=file_size) as pbar:
+        while True:
+            buffer = u.read(block_sz)
+            if not buffer:
+                break
 
-        file_size_dl += len(buffer)
-        file.write(buffer)
-        status = r"%10d  [%3.2f%%]" % (file_size_dl/1000000.0, file_size_dl * 100. / file_size)
-        status = status + chr(8)*(len(status)+1)
-        print(status)
-    
+            file.write(buffer)
+            pbar.update(len(buffer))
+    file.seek(0)
+
+    return file
 
 def tgz_url(object, type):
     """ Get the TGZ file URL for a particular object and dataset type """
@@ -81,7 +83,7 @@ def check_url(url):
         request = Request(url)
         request.get_method = lambda : 'HEAD'
         response = urlopen(request)
-        return True
+        return response
     except Exception as e:
         return False
 
@@ -91,29 +93,39 @@ def lazy_image_collection():
     objects = fetch_objects(objects_url)
 
     # Download each object for all objects and types specified
-    for object in objects:
+    for i, object in enumerate(objects):
         if objects_to_download != "all" and object not in objects_to_download:
             continue
         for file_type in files_to_download:
-            temp_file = io.BytesIO()
             url = tgz_url(object, file_type)
             if not check_url(url):
                 continue
-            download_file(url, temp_file)
+            print("Downloading... ({})".format(url))
+            temp_file = download_file(url)
 
             with tarfile.open(fileobj=temp_file, mode="r:*") as t:
-
+                print("Extracting... ({})".format(t.name))
                 for tf in t.getmembers():
-                    if tf.isfile() and (not '/' in tf.name) and tf.name.endswith(".jpg"):
+                    image_path = pathlib.Path(tf.name)
+                    if tf.isfile() and image_path.suffix == '.jpg' and image_path.parent.name == object:
                         # Valid photo
+                        mask_path = image_path.parent / 'masks' / (image_path.stem + '_mask.pbm')
+
+                        print("Found image: {}".format(image_path))
+                        print("Found mask: {}".format(mask_path))
                         
                         # Yield a tuple of the image file and the image mask
-                        yield tuple(t.extractfile(tf), t.extractfile(t.getmember(os.path.join('masks', os.path.splitext(tf.name)[0] + '_mask.pbm'))).read())
+                        yield (i, t.extractfile(tf), t.extractfile(t.getmember(mask_path.as_posix())))
+            temp_file.close()
 
-def save_yolo(save_dir, filename, classnumber, image_and_mask):
-    image, mask = image_and_mask
-    mask = cv2.imread(mask, cv2.IMREAD_BINARY)
-    image = cv2.imread(image, cv2.IMREAD_COLOR)
+def save_yolo(save_dir, filename, image_and_mask):
+    classnumber, image, mask = image_and_mask
+
+    image = np.ndarray(shape=(1, len(image)), dtype=np.uint8, buffer=image.read())
+    mask = np.ndarray(shape=(1, len(mask)), dtype=np.uint8, buffer=mask.read())
+
+    image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+    mask = cv2.imdecode(image, cv2.IMREAD_GRAYSCALE)
 
     # Resize the image to 640x640
     image = image.resize((640, 640))
@@ -138,13 +150,26 @@ TEST = 0.2
 TRAIN = 0.6
 
 if __name__=="__main__":
+    path = pathlib.Path("YCB-dataset")
+
+    train_path = path / "train"
+    test_path = path / "test"
+    validation_path = path / "validation"
+
+    train_path.mkdir(exist_ok=True, parents=True)
+    test_path.mkdir(exist_ok=True, parents=True)
+    validation_path.mkdir(exist_ok=True, parents=True)
+
+    print(train_path)
+    print(test_path)
+    print(validation_path)
+
     for index, image_and_mask in enumerate(lazy_image_collection()):
         choice_machine = random.random()
-        path = pathlib.Path("YCB-dataset")
 
         if choice_machine < TRAIN:
-            save_yolo(path / "train", f"img{index}", image_and_mask)
+            save_yolo(train_path, f"img{index}", image_and_mask)
         elif choice_machine < TRAIN + TEST:
-            save_yolo(path / "test", f"img{index}", image_and_mask)
+            save_yolo(test_path, f"img{index}", image_and_mask)
         else:
-            save_yolo(path / "validation", f"img{index}", image_and_mask)
+            save_yolo(validation_path, f"img{index}", image_and_mask)
