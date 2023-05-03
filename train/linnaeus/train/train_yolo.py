@@ -27,10 +27,18 @@ from urllib.request import Request, urlopen
 files_to_download = ["berkeley_rgb_highres"]
 
 # objects_to_download = "all"
-objects_to_download = ["001_chips_can"]
-#                        "002_master_chef_can",
-#                        "003_cracker_box",
-#                        "004_sugar_box"]
+objects_to_download = [
+    "001_chips_can",
+    "005_tomato_soup_can",
+    "055_baseball",
+    "056_tennis_ball",
+    "010_potted_meat_can",
+    "022_windex_bottle",
+    "025_mug",
+    "024_bowl",
+    "029_plate",
+    "007_tuna_fish_can"
+]
 
 # Extract all files from the downloaded .tgz, and remove .tgz files.
 # If false, will just download all .tgz files to output_directory
@@ -56,7 +64,7 @@ def download_file(url):
     file_size = int(u.getheader("Content-Length"))    
 
     block_sz = 65536
-    with tqdm(total=file_size) as pbar:
+    with tqdm(total=file_size, unit='B', unit_scale=True, unit_divisor=1024) as pbar:
         while True:
             buffer = u.read(block_sz)
             if not buffer:
@@ -121,30 +129,37 @@ def lazy_image_collection():
 def save_yolo(save_dir, filename, image_and_mask):
     classnumber, image, mask = image_and_mask
 
-    image = np.ndarray(shape=(1, len(image)), dtype=np.uint8, buffer=image.read())
-    mask = np.ndarray(shape=(1, len(mask)), dtype=np.uint8, buffer=mask.read())
-
-    image = cv2.imdecode(image, cv2.IMREAD_COLOR)
-    mask = cv2.imdecode(image, cv2.IMREAD_GRAYSCALE)
+    image = cv2.imdecode(np.asarray(bytearray(image.read()), dtype=np.uint8), cv2.IMREAD_COLOR)
+    mask = cv2.imdecode(np.asarray(bytearray(mask.read()), dtype=np.uint8), 0)
 
     # Resize the image to 640x640
-    image = image.resize((640, 640))
+    image = cv2.resize(image, (640, 640), interpolation=cv2.INTER_AREA)
+    mask = cv2.resize(mask, (640, 640), interpolation=cv2.INTER_NEAREST)
 
     # Gather the polygons
-    polygons = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
     # Create the YOLO annotation filename and the image filename
     image_filename = save_dir / "images" / f"{filename}.jpg"
     annotation_filename = save_dir / "labels" / f"{filename}.txt"
+
+    image_filename.parent.mkdir(exist_ok=True, parents=True)
+    annotation_filename.parent.mkdir(exist_ok=True, parents=True)
     
     # write the polygons to the annotation file
-    with open(annotation_filename, 'w') as annotation_file:
-        for polygon in polygons:
-            polygon_point_str = " ".join(" ".join(point) for point in polygon)
+    try:
+        annotation_file = open(annotation_filename.resolve(), 'x')
+    except FileExistsError:
+        annotation_file = open(annotation_filename.resolve(), 'w')
+    with annotation_file:
+        for contour in contours:
+            n_points, _, n_coords=contour.shape
+            polygon = contour.reshape((n_points, n_coords))
+            polygon_point_str = " ".join(" ".join(str(c) for c in point) for point in polygon)
             annotation_file.write(f"{classnumber} {polygon_point_str}\n")
     
     # Save the image
-    image.save(image_filename, format='JPEG', quality=95)
+    cv2.imwrite(str(image_filename.resolve()), image)
 
 TEST = 0.2
 TRAIN = 0.6
@@ -155,14 +170,6 @@ if __name__=="__main__":
     train_path = path / "train"
     test_path = path / "test"
     validation_path = path / "validation"
-
-    train_path.mkdir(exist_ok=True, parents=True)
-    test_path.mkdir(exist_ok=True, parents=True)
-    validation_path.mkdir(exist_ok=True, parents=True)
-
-    print(train_path)
-    print(test_path)
-    print(validation_path)
 
     for index, image_and_mask in enumerate(lazy_image_collection()):
         choice_machine = random.random()
