@@ -30,7 +30,7 @@ class LinnaeusUltima():
             multimask_output=False,
         )
 
-        return zip((x.item() for x in result_boxes.cls), (self.yolo.names[x.item()] for x in result_boxes.cls), masks, result_boxes.xyxy)
+        return zip((x.item() for x in result_boxes.cls), (self.yolo.names[x.item()] for x in result_boxes.cls), (x.item() for x in result_boxes.conf), masks, result_boxes.xyxy)
     
     @staticmethod
     def main(image, *args, **kwargs):
@@ -47,14 +47,14 @@ class LinnaeusUltima():
 
             plt.figure(figsize=(10, 10))
             plt.imshow(image)
-            for cls, clsname, mask, xyxy in results:
+            for _, clsname, conf, mask, xyxy in results:
                 x, y = xyxy[:2]
                 color = np.array([30/255, 144/255, 255/255, 0.6])
                 h, w = mask.shape[-2:]
                 mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1)
                 
                 plt.gca().imshow(mask_image)
-                plt.gca().text(x, y, clsname, color='white', fontsize=12, bbox=dict(facecolor='blue', alpha=0.5))
+                plt.gca().text(x, y, f"{clsname} {conf:0.2f}", color='white', fontsize=12, bbox=dict(facecolor='blue', alpha=0.5))
 
             plt.axis('off')
             plt.show()
