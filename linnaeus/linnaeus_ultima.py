@@ -15,9 +15,9 @@ class LinnaeusUltima():
 
         self.sam_predictor = SamPredictor(self.sam)
     
-    def predict(self, img):
+    def predict(self, img, *args, **kwargs):
         self.sam_predictor.set_image(img)
-        results = self.yolo(img)
+        results = self.yolo(img, *args, **kwargs)
         result_boxes = results[0].boxes
 
         # TODO: This is a hack. We need to figure out how to use pytorch only
