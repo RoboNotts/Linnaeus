@@ -6,7 +6,7 @@ authors = ["dthelegend <wampamba.daudi@gmail.com>"]
 readme = "README.md"
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = ">=3.8"
 ultralytics = "^8.0.109"
 segment-anything = {git = "https://github.com/facebookresearch/segment-anything.git"}
 opencv-python = "^4.7.0.72"
