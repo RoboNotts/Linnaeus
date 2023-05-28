@@ -51,7 +51,7 @@ class LinnaeusUltima():
                 x, y = xyxy[:2]
                 color = np.array([30/255, 144/255, 255/255, 0.6])
                 h, w = mask.shape[-2:]
-                mask_image = mask.reshape(h, w, 1) * color.reshape(1, 1, -1)
+                mask_image = mask.reshape(h, w, 1).cpu().numpy() * color.reshape(1, 1, -1)
                 
                 plt.gca().imshow(mask_image)
                 plt.gca().text(x, y, f"{clsname} {conf:0.2f}", color='white', fontsize=12, bbox=dict(facecolor='blue', alpha=0.5))
@@ -62,8 +62,8 @@ class LinnaeusUltima():
         except ImportError:
             print("matplotlib not installed. Skipping visualization.")
 
-            for cls, mask in results:
-                print(f"{cls}: {mask}")
+            for _, clsname, conf, mask, xyxy in results:
+                print(f"{clsname}: {mask}: {xyxy}")
             return
         
 
