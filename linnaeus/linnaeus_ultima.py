@@ -20,7 +20,7 @@ class LinnaeusUltima():
         results = self.yolo(img, *args, **kwargs)
         result_boxes = results[0].boxes
 
-        transformed_boxes = self.sam_predictor.transform.apply_boxes_torch(result_boxes.xyxy.cpu(), img.shape[:2])
+        transformed_boxes = self.sam_predictor.transform.apply_boxes_torch(result_boxes.xyxy.to(self.device), img.shape[:2])
 
         masks, _, _ = self.sam_predictor.predict_torch(
             point_coords=None,
