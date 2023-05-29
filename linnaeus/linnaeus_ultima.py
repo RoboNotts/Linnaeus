@@ -21,7 +21,7 @@ class LinnaeusUltima():
         result_boxes = results[0].boxes
 
         # TODO: This is a hack. We need to figure out how to use pytorch only
-        transformed_boxes = self.sam_predictor.transform.apply_boxes_torch(result_boxes.xyxy, img.shape[:2])
+        transformed_boxes = self.sam_predictor.transform.apply_boxes_torch(result_boxes.xyxy.cpu(), img.shape[:2])
 
         masks, _, _ = self.sam_predictor.predict_torch(
             point_coords=None,
