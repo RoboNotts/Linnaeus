@@ -8,12 +8,16 @@ from linnaeus.core.mAP import return_mAP
 import torch
 from tqdm import tqdm
 from math import ceil
+from torch.cuda.amp import autocast, GradScalar
 
 # torch.manual_seed(1)	#reproducible
-def train(weights, classfile, train_dataset, val_dataset, batch_size = 1, epoch = 1000, lr = 0.0001, ft_lr = 0.000001, start=0, weight_decay = 0.005, optimizer_name="Adam", save_file=False):
-
+def train(weights, classfile, train_dataset, val_dataset, batch_size = 16, epoch = 1000, lr = 0.0001, ft_lr = 0.000001, start=0, weight_decay = 0.005, optimizer_name="Adam", save_file=False):
+    
     # initialize model
     model = FCOS(torch.load(weights))
+    
+    # init scalar
+    scalar = GradScalar()
 
     # initailize gpu for training and testing
     if torch.cuda.is_available():
@@ -78,12 +82,14 @@ def train(weights, classfile, train_dataset, val_dataset, batch_size = 1, epoch 
                     # read images and labels
                     device_image = images.to(train_device)
                     # obtain feature maps output by the model
-                    confs, locs, centers = model(device_image)  # .to(train_device)
-                    # training
-                    loss = loss_func(confs, locs, centers, tags, train_device)
+                    with autocast():
+                        confs, locs, centers = model(device_image)  # .to(train_device)
+                        # training
+                        loss = loss_func(confs, locs, centers, tags, train_device)
                     optimizer.zero_grad()
-                    loss.backward()
-                    optimizer.step()
+                    scalar.scale(loss).backward()
+                    scalar.step(optimizer)
+                    scalar.update()
                     tqdm.write('Step: %d | train loss: %.4f' % (step, loss))
                     tdqm_enumerated_loader.set_postfix(loss = '%.4f' % loss)
             
