@@ -13,6 +13,8 @@ class LinnaeusUltima():
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
         self.sam.to(device=device)
 
+        self.device = device
+
         self.sam_predictor = SamPredictor(self.sam)
     
     def predict(self, img, *args, **kwargs):
