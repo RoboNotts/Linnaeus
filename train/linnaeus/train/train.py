@@ -6,6 +6,7 @@ import torch.utils.data as Data
 import os
 from linnaeus.core.mAP import return_mAP
 import torch
+from torch.optim.lr_scheduler import ExponentialLR
 from tqdm import tqdm
 from math import ceil
 from torch.cuda.amp import autocast, GradScalar
@@ -54,6 +55,9 @@ def train(weights, classfile, train_dataset, val_dataset, batch_size = 16, epoch
                                     {'params': FT_bias_p, 'weight_decay': 0, 'lr': ft_lr},
                                     ])
     
+    # init lr sched
+    decay_rate = (0.00001 / 0.001) ** (1/epoch)
+    scheduler = ExponentialLR(optimiser, gamma=decay_rate)
 
     classes = ClassLoader(classfile)
 
@@ -90,6 +94,7 @@ def train(weights, classfile, train_dataset, val_dataset, batch_size = 16, epoch
                     scalar.scale(loss).backward()
                     scalar.step(optimizer)
                     scalar.update()
+                    scheduler.step()
                     tqdm.write('Step: %d | train loss: %.4f' % (step, loss))
                     tdqm_enumerated_loader.set_postfix(loss = '%.4f' % loss)
             
