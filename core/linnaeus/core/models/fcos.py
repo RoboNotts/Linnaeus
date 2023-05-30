@@ -4,7 +4,7 @@ import torchvision.models as models
 import torch.nn.functional as F
 
 class FCOS(nn.Module):
-    def __init__(self, model_weights):
+    def __init__(self, model_weights, n_class=9):
         super().__init__()
         model = models.resnet50(weights=None)
         model.load_state_dict(model_weights)
@@ -170,7 +170,7 @@ class FCOS(nn.Module):
         self.conf7 = nn.Sequential(
             nn.Conv2d(
                 in_channels=256,
-                out_channels=22,
+                out_channels=n_class,
                 kernel_size=3,
                 stride=1,
                 padding=1,
@@ -275,7 +275,7 @@ class FCOS(nn.Module):
         self.conf6 = nn.Sequential(
             nn.Conv2d(
                 in_channels=256,
-                out_channels=22,
+                out_channels=n_class,
                 kernel_size=3,
                 stride=1,
                 padding=1,
@@ -380,7 +380,7 @@ class FCOS(nn.Module):
         self.conf5 = nn.Sequential(
             nn.Conv2d(
                 in_channels=256,
-                out_channels=22,
+                out_channels=n_class,
                 kernel_size=3,
                 stride=1,
                 padding=1,
@@ -486,7 +486,7 @@ class FCOS(nn.Module):
         self.conf4 = nn.Sequential(
             nn.Conv2d(
                 in_channels=256,
-                out_channels=22,
+                out_channels=n_class,
                 kernel_size=3,
                 stride=1,
                 padding=1,
@@ -592,7 +592,7 @@ class FCOS(nn.Module):
         self.conf3 = nn.Sequential(
             nn.Conv2d(
                 in_channels=256,
-                out_channels=22,
+                out_channels=n_class,
                 kernel_size=3,
                 stride=1,
                 padding=1,
