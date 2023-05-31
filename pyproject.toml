@@ -7,7 +7,7 @@ readme = "README.md"
 packages = [{include = "linnaeus"}]
 
 [tool.poetry.dependencies]
-python = "3.10.6"
+python = ">=3.8"
 torch = "^1.13.1"
 torchvision ="^0.14.1"
 opencv-python = "^4.7.0.68"
