@@ -1,5 +1,6 @@
 import argparse
 import pathlib
+from linnaeus.train import train
 
 parser = argparse.ArgumentParser(
     prog="Linnaeus Command Line Tool",
@@ -10,7 +11,7 @@ parser = argparse.ArgumentParser(
 sub_parsers = parser.add_subparsers(dest="command")
 
 train_parser = sub_parsers.add_parser("train")
-train_parser.add_argument('weights', type=pathlib.Path)
+train_parser.add_argument('weights', nargs="?", type=pathlib.Path)
 train_parser.add_argument('classfile', type=pathlib.Path)
 train_parser.add_argument('train_dataset', type=pathlib.Path)
 train_parser.add_argument('val_dataset', type=pathlib.Path)
@@ -32,13 +33,9 @@ predict_parser.add_argument('image', type=pathlib.Path)
 args = parser.parse_args()
 
 if args.command == "train":
-    try:
-        from linnaeus.train import train
-        del args.command
-        
-        train(**vars(args))
-    except ImportError:
-        print("Train Module not included.")
+    del args.command
+    
+    train(**vars(args))
 elif args.command == "predict":
     from linnaeus.cli import predict
     del args.command

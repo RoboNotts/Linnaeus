@@ -1,5 +1,5 @@
 import torch
-from linnaeus.core.loaders import FolderDataSetLoader, ClassLoader
+from linnaeus.core.loaders import FolderDataSetLoaderYolo as FolderDataSetLoader, ClassLoader
 from linnaeus.train.loss import FCOSLoss
 from linnaeus.core.models import FCOS
 import torch.utils.data as Data
@@ -9,17 +9,16 @@ import torch
 from torch.optim.lr_scheduler import ExponentialLR
 from tqdm import tqdm
 from math import ceil
-from torch.cuda.amp import autocast, GradScalar
 
 # torch.manual_seed(1)	#reproducible
 def train(weights, classfile, train_dataset, val_dataset, batch_size = 16, epoch = 1000, lr = 0.0001, ft_lr = 0.000001, start=0, weight_decay = 0.005, optimizer_name="Adam", save_file=False):
-    
-    # initialize model
-    model = FCOS(torch.load(weights))
-    
-    # init scalar
-    scalar = GradScalar()
+    classes = ClassLoader(classfile)
 
+    # initialize model
+    if weights is not None:
+        weights = torch.load(weights)
+    model = FCOS(len(classes), weights)
+    
     # initailize gpu for training and testing
     if torch.cuda.is_available():
         print("Using CUDA")
@@ -57,9 +56,7 @@ def train(weights, classfile, train_dataset, val_dataset, batch_size = 16, epoch
     
     # init lr sched
     decay_rate = (0.00001 / 0.001) ** (1/epoch)
-    scheduler = ExponentialLR(optimiser, gamma=decay_rate)
-
-    classes = ClassLoader(classfile)
+    scheduler = ExponentialLR(optimizer, gamma=decay_rate)
 
     loss_func = FCOSLoss()
     # initialize training set
@@ -86,14 +83,13 @@ def train(weights, classfile, train_dataset, val_dataset, batch_size = 16, epoch
                     # read images and labels
                     device_image = images.to(train_device)
                     # obtain feature maps output by the model
-                    with autocast():
-                        confs, locs, centers = model(device_image)  # .to(train_device)
-                        # training
-                        loss = loss_func(confs, locs, centers, tags, train_device)
+                    # with autocast():
+                    confs, locs, centers = model(device_image)  # .to(train_device)
+                    # training
+                    loss = loss_func(confs, locs, centers, tags, train_device)
                     optimizer.zero_grad()
-                    scalar.scale(loss).backward()
-                    scalar.step(optimizer)
-                    scalar.update()
+                    loss.backward()
+                    optimizer.step()
                     scheduler.step()
                     tqdm.write('Step: %d | train loss: %.4f' % (step, loss))
                     tdqm_enumerated_loader.set_postfix(loss = '%.4f' % loss)

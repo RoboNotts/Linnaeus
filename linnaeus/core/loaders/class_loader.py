@@ -6,5 +6,8 @@ class ClassLoader():
     def __getitem__(self, index):
         return self.classes[index]
     
+    def __len__(self):
+        return len(self.classes)
+    
     def index(self, key):
         return self.classes.index(key)

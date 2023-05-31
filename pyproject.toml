@@ -4,9 +4,13 @@ version = "0.1.0"
 description = ""
 authors = ["DTheLegend <wampamba.daudi@gmail.com>"]
 readme = "README.md"
+packages = [{include = "linnaeus"}]
 
 [tool.poetry.dependencies]
-python = "^3.10"
+python = "3.10.6"
+torch = "^1.13.1"
+torchvision ="^0.14.1"
+opencv-python = "^4.7.0.68"
 
 
 [build-system]

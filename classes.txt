@@ -1,23 +1,8 @@
-cup
-plate
-bowl
-towel
-shoes
-sponge
-bottle
-toothbrush
-toothpaste
-tray
-sweater
-cellphone
-banana
-medicine bottle
-reading glasses
-flashlight
-pill box
-book
-knife
-cellphone charger
-shopping bag
-person
-keyboard
+054_softball
+001_chips_can
+005_tomato_soup_can
+033_spatula
+022_windex_bottle
+010_potted_meat_can
+056_tennis_ball
+019_pitcher_base

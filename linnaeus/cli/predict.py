@@ -12,7 +12,7 @@ def main(model, weights, classfile, image):
     classes = ClassLoader(classfile)
         
     # load the model
-    model = FCOS(torch.load(model))
+    model = FCOS(len(classes),torch.load(model))
     model.load_state_dict(torch.load(weights))
     train_device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     model.to(train_device)
