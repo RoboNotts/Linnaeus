@@ -6,6 +6,7 @@ from segment_anything import sam_model_registry, SamPredictor
 import cv2
 import numpy as np
 import torch
+from ultralytics import YOLO
 
 DEFAULT_SAM_CHECKPOINT = "sam_vit_h_4b8939.pth"
 DEFAULT_MODEL_TYPE = "vit_h"
@@ -22,6 +23,10 @@ class LinnaeusUltima():
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
         self.sam.to(device=device)
 
+        # JANK AHEAD
+        self.yolo = YOLO("yolov8n.pt")
+        # END JANK
+
         self.device = device
 
         self.sam_predictor = SamPredictor(self.sam)
@@ -33,13 +38,20 @@ class LinnaeusUltima():
 
         mcvities = preprocessing(torch.from_numpy(np.transpose(img, (2, 0, 1)))).unsqueeze(0).to(device=self.device)
         confs, locs, centers = self.object_detector(mcvities)
-        boxes = np.array(fcos_to_boxes(self.object_detector.names, confs, locs, centers, row, col))
+        boxes = fcos_to_boxes(self.object_detector.names, confs, locs, centers, row, col)
+        boxes = np.array(boxes)
 
         if len(boxes) == 0:
             # No boxes found; return empty list
             return []
         
         r_boxes = boxes[:, 2:6] * np.array([col // 480, row // 360, col // 480, row // 360]).reshape(1, -1)
+
+        # JANK AHEAD
+        result_boxes = self.yolo(img, classes=[0])[0].boxes
+
+        r_boxes = np.concatenate((r_boxes, result_boxes.xyxy.cpu().numpy()), axis=0)
+        # JANK END
 
         transformed_boxes = self.sam_predictor.transform.apply_boxes_torch(torch.tensor(r_boxes).to(device=self.device), img.shape[:2])
 
@@ -50,7 +62,7 @@ class LinnaeusUltima():
             multimask_output=False,
         )
 
-        return zip(boxes[:,0], (self.object_detector.names[int(x)] for x in boxes[:,0]), (x.item() for x in boxes[:,1]), masks, r_boxes)
+        return [*zip(boxes[:,0] + np.ones(boxes[:,0].shape), (["person", *self.object_detector.names][int(x) + 1] for x in boxes[:,0]), (x.item() for x in boxes[:,1]), masks, r_boxes), *zip((x.item() for x in result_boxes.cls), (self.yolo.names[x.item()] for x in result_boxes.cls), (x.item() for x in result_boxes.conf), masks, result_boxes.xyxy)]
     
     @staticmethod
     def main(image, *args, **kwargs):
@@ -83,7 +95,7 @@ class LinnaeusUltima():
                                     (255, 40, 0), 1)
                 frame = cv2.putText(frame, f"y={ycentroid}", (xmin, ymin + 50), cv2.FONT_HERSHEY_COMPLEX, 0.8,
                                     (80, 0, 200), 1)
-        cv2.imshow(f'WOW!', frame)
+        cv2.imshow(f'WOW!', cv2.resize(frame, (1920, 1080)))
         cv2.waitKey(0) & 0xFF == ord('q')
 
 
