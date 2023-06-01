@@ -38,8 +38,10 @@ class LinnaeusUltima():
         if len(boxes) == 0:
             # No boxes found; return empty list
             return []
+        
+        r_boxes = boxes[:, 2:6] * np.array([col // 480, row // 360, col // 480, row // 360]).reshape(1, -1)
 
-        transformed_boxes = self.sam_predictor.transform.apply_boxes_torch(torch.tensor(boxes[:, 2:6]).to(device=self.device), img.shape[:2])
+        transformed_boxes = self.sam_predictor.transform.apply_boxes_torch(torch.tensor(r_boxes).to(device=self.device), img.shape[:2])
 
         masks, _, _ = self.sam_predictor.predict_torch(
             point_coords=None,
@@ -48,7 +50,7 @@ class LinnaeusUltima():
             multimask_output=False,
         )
 
-        return zip(boxes[:,0], (self.object_detector.names[int(x)] for x in boxes[:,0]), (x.item() for x in boxes[:,1]), masks, boxes[:,2:6])
+        return zip(boxes[:,0], (self.object_detector.names[int(x)] for x in boxes[:,0]), (x.item() for x in boxes[:,1]), masks, r_boxes)
     
     @staticmethod
     def main(image, *args, **kwargs):
