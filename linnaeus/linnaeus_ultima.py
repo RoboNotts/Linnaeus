@@ -1,4 +1,5 @@
 from linnaeus.core.models import FCOS
+from linnaeus.core.loaders import ClassLoader
 from linnaeus.core.data_augmentation import preprocessing
 from linnaeus.core.mAP.functions import fcos_to_boxes
 from segment_anything import sam_model_registry, SamPredictor
@@ -10,10 +11,11 @@ DEFAULT_SAM_CHECKPOINT = "sam_vit_h_4b8939.pth"
 DEFAULT_MODEL_TYPE = "vit_h"
 DEFAULT_FCOS_MODEL = "fcos.pt"
 DEFAULT_RESNET_MODEL = "resnet50.pt"
+DEFAULT_CLASSES = "classes.txt"
 
 class LinnaeusUltima():
-    def __init__(self, sam_checkpoint=DEFAULT_SAM_CHECKPOINT, model_type=DEFAULT_MODEL_TYPE, resnet_50_model = DEFAULT_RESNET_MODEL, fcos_model = DEFAULT_FCOS_MODEL, classes = [], device = 'cpu'):
-        
+    def __init__(self, sam_checkpoint=DEFAULT_SAM_CHECKPOINT, model_type=DEFAULT_MODEL_TYPE, resnet_50_model = DEFAULT_RESNET_MODEL, fcos_model = DEFAULT_FCOS_MODEL, classes = DEFAULT_CLASSES, device = 'cpu'):
+        classes = ClassLoader(classes)
         self.object_detector = FCOS(classes, torch.load(resnet_50_model))
         self.object_detector.load_state_dict(torch.load(fcos_model))
         self.object_detector.to(device=device)
