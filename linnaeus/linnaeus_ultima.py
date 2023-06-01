@@ -31,7 +31,7 @@ class LinnaeusUltima():
 
         row, col = img.shape[:2]
 
-        mcvities = preprocessing(torch.from_numpy(np.transpose(img, (2, 0, 1)))).unsqueeze(0)
+        mcvities = preprocessing(torch.from_numpy(np.transpose(img, (2, 0, 1)))).unsqueeze(0).to(device=self.device)
         confs, locs, centers = self.object_detector(mcvities)
         boxes = np.array(fcos_to_boxes(self.object_detector.classes, confs, locs, centers, row, col))
 
