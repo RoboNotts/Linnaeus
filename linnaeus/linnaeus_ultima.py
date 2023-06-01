@@ -48,7 +48,7 @@ class LinnaeusUltima():
             multimask_output=False,
         )
 
-        return zip(boxes[:,0], (self.object_detector.names[x] for x in boxes[:,0]), (x.item() for x in boxes[:,1]), masks, boxes[:,2:6])
+        return zip(boxes[:,0], (self.object_detector.names[int(x)] for x in boxes[:,0]), (x.item() for x in boxes[:,1]), masks, boxes[:,2:6])
     
     @staticmethod
     def main(image, *args, **kwargs):
