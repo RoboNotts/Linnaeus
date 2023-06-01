@@ -14,7 +14,7 @@ DEFAULT_RESNET_MODEL = "resnet50.pt"
 DEFAULT_CLASSES = "classes.txt"
 
 class LinnaeusUltima():
-    def __init__(self, sam_checkpoint=DEFAULT_SAM_CHECKPOINT, model_type=DEFAULT_MODEL_TYPE, resnet_50_model = DEFAULT_RESNET_MODEL, fcos_model = DEFAULT_FCOS_MODEL, classes = DEFAULT_CLASSES, device = 'cpu'):
+    def __init__(self, sam_checkpoint=DEFAULT_SAM_CHECKPOINT, model_type=DEFAULT_MODEL_TYPE, resnet_50_model = DEFAULT_RESNET_MODEL, fcos_model = DEFAULT_FCOS_MODEL, classes = DEFAULT_CLASSES, device = 'cpu', *args, **kwargs):
         classes = ClassLoader(classes)
         self.object_detector = FCOS(classes, torch.load(resnet_50_model))
         self.object_detector.load_state_dict(torch.load(fcos_model))
@@ -29,7 +29,7 @@ class LinnaeusUltima():
     def predict(self, img, *args, **kwargs):
         self.sam_predictor.set_image(img)
 
-        row, col = img.shape[:1]
+        row, col = img.shape[:2]
 
         mcvities = preprocessing(torch.from_numpy(np.transpose(img, (2, 0, 1)))).unsqueeze(0)
         confs, locs, centers = self.object_detector(mcvities)
@@ -39,7 +39,7 @@ class LinnaeusUltima():
             # No boxes found; return empty list
             return []
 
-        transformed_boxes = self.sam_predictor.transform.apply_boxes_torch(torch.tensor(boxes[:, 2:5]).to(device=self.device), img.shape[:2])
+        transformed_boxes = self.sam_predictor.transform.apply_boxes_torch(torch.tensor(boxes[:, 2:6]).to(device=self.device), img.shape[:2])
 
         masks, _, _ = self.sam_predictor.predict_torch(
             point_coords=None,
@@ -48,7 +48,7 @@ class LinnaeusUltima():
             multimask_output=False,
         )
 
-        return zip(boxes[:,0], (self.object_detector.names[x] for x in boxes[:,0]), (x.item() for x in boxes[:,1]), masks, boxes[:,2:5])
+        return zip(boxes[:,0], (self.object_detector.names[x] for x in boxes[:,0]), (x.item() for x in boxes[:,1]), masks, boxes[:,2:6])
     
     @staticmethod
     def main(image, *args, **kwargs):
