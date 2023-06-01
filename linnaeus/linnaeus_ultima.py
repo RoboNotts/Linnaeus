@@ -9,15 +9,15 @@ import torch
 
 DEFAULT_SAM_CHECKPOINT = "sam_vit_h_4b8939.pth"
 DEFAULT_MODEL_TYPE = "vit_h"
-DEFAULT_FCOS_MODEL = "fcos.pt"
-DEFAULT_RESNET_MODEL = "resnet50.pt"
+DEFAULT_FCOS_MODEL = "weights.pt"
+DEFAULT_RESNET_MODEL = "resnet50-19c8e357.pth"
 DEFAULT_CLASSES = "classes.txt"
 
 class LinnaeusUltima():
     def __init__(self, sam_checkpoint=DEFAULT_SAM_CHECKPOINT, model_type=DEFAULT_MODEL_TYPE, resnet_50_model = DEFAULT_RESNET_MODEL, fcos_model = DEFAULT_FCOS_MODEL, classes = DEFAULT_CLASSES, device = 'cpu', *args, **kwargs):
         classes = ClassLoader(classes)
-        self.object_detector = FCOS(classes, torch.load(resnet_50_model))
-        self.object_detector.load_state_dict(torch.load(fcos_model))
+        self.object_detector = FCOS(classes, torch.load(resnet_50_model, map_location=torch.device(device=device)))
+        self.object_detector.load_state_dict(torch.load(fcos_model, map_location=torch.device(device=device)))
         self.object_detector.to(device=device)
         self.sam = sam_model_registry[model_type](checkpoint=sam_checkpoint)
         self.sam.to(device=device)
@@ -59,33 +59,33 @@ class LinnaeusUltima():
         if isinstance(image, str):
             image = cv2.imread(image)
 
-        results = lu.predict(image)
+        results = lu.predict(cv2.cvtColor(image, cv2.COLOR_RGB2BGR))
 
-        try:
-            import matplotlib.pyplot as plt
-            import numpy as np
-
-            plt.figure(figsize=(10, 10))
-            plt.imshow(image)
-            for _, clsname, conf, mask, xyxy in results:
-                x, y = xyxy[:2]
-                color = np.array([30/255, 144/255, 255/255, 0.6])
-                h, w = mask.shape[-2:]
-                mask_image = mask.reshape(h, w, 1).cpu().numpy() * color.reshape(1, 1, -1)
-                
-                plt.gca().imshow(mask_image)
-                plt.gca().text(x, y, f"{clsname} {conf:0.2f}", color='white', fontsize=12, bbox=dict(facecolor='blue', alpha=0.5))
-
-            plt.axis('off')
-            plt.show()
+        frame = image.copy()
+        for cls, clsname, conf, mask, xyxy in results:
+            h, w = mask.shape[-2:]
+            mask_binary = mask.reshape(h, w).cpu().numpy() * np.array([1]).reshape(1, 1)
             
-        except ImportError:
-            print("matplotlib not installed. Skipping visualization.")
+            moments = cv2.moments(mask_binary, binaryImage=True)
+            xcentroid = int(moments["m10"] / moments["m00"])
+            ycentroid = int(moments["m01"] / moments["m00"])
+            
+            xmin, ymin, xmax, ymax = (int(a.item()) for a in xyxy)
 
-            for _, clsname, conf, mask, xyxy in results:
-                print(f"{clsname}: {mask}: {xyxy}")
-            return
-        
+            color = np.array([30, 144, 255])
+            mask_image = (mask.reshape(h, w, 1).cpu().numpy() * color.reshape(1, 1, -1)).astype(np.uint8)
+
+            # draw stuff
+            if frame is not None:
+                frame = cv2.addWeighted(frame, 1, mask_image, 0.6, 0)
+                frame = cv2.rectangle(frame, (xmin, ymin), (xmax, ymax), (255, 0, 200), 2)
+                frame = cv2.putText(frame, f"{clsname[:3]} {conf:.2f}", (xmin, ymin - 10), cv2.FONT_HERSHEY_COMPLEX, 0.8,
+                                    (255, 40, 0), 1)
+                frame = cv2.putText(frame, f"y={ycentroid}", (xmin, ymin + 50), cv2.FONT_HERSHEY_COMPLEX, 0.8,
+                                    (80, 0, 200), 1)
+        cv2.imshow(f'WOW!', frame)
+        cv2.waitKey(0) & 0xFF == ord('q')
+
 
 
 
