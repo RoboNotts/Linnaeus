@@ -33,7 +33,7 @@ class LinnaeusUltima():
 
         mcvities = preprocessing(torch.from_numpy(np.transpose(img, (2, 0, 1)))).unsqueeze(0).to(device=self.device)
         confs, locs, centers = self.object_detector(mcvities)
-        boxes = np.array(fcos_to_boxes(self.object_detector.classes, confs, locs, centers, row, col))
+        boxes = np.array(fcos_to_boxes(self.object_detector.names, confs, locs, centers, row, col))
 
         if len(boxes) == 0:
             # No boxes found; return empty list
